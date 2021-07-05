@@ -1,7 +1,9 @@
 const { Schema, model } = require('mongoose');
-const bcrypt = require('bcryptjs');
+const mongoose = require ('mongoose')
+const bcrypt = require('bcrypt');
+const uniqueValidator = require('mongoose-unique-validator');
 
-const studentSchema = new Schema({
+const StudentSchema = new Schema({
   firstName: {
     type: String,
     trim: true,
@@ -64,17 +66,32 @@ const studentSchema = new Schema({
  
 });
 
-studentSchema.pre('save', async function (next) {
+StudentSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
 
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
-  this.passwordConfirm = undefined;
+  // this.passwordConfirm = undefined;
   next();
 });
 
-studentSchema.methods.passwordsMatch = async function (passwordInput, password) {
+StudentSchema.methods.passwordsMatch = async function (passwordInput, password) {
   return await bcrypt.compare(passwordInput, password);
 };
+StudentSchema.plugin(uniqueValidator);
 
-module.exports = model('Student', studentSchema);
+//find student by matric Number
+module.exports.getStudentbymatricNumber = function (matricNumber, callback){
+  const query = {matricNumber : matricNumber}
+  Student.findOne(query, callback);
+}
+
+//compare password for login
+module.exports.comparePassword = function(password, hash, callback){
+  bcrypt.compare(password, hash, (err, isMatch)=>{
+    if (err) throw err;
+    callback(null, isMatch);
+  });
+}
+
+module.exports = model('Student', StudentSchema);
