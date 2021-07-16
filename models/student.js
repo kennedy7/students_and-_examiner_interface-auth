@@ -2,6 +2,7 @@ const { Schema, model } = require('mongoose');
 const mongoose = require ('mongoose')
 const bcrypt = require('bcrypt');
 const uniqueValidator = require('mongoose-unique-validator');
+const validate = require ('express-validator')
 
 const StudentSchema = new Schema({
   firstName: {
@@ -50,7 +51,7 @@ const StudentSchema = new Schema({
   },
   passwordConfirm: {
     type: String,
-    required: [true, 'Confirm your password'],
+    // required: [true, 'Confirm your password'],
     validate: {
       validator: function (value) {
         return value === this.password;
@@ -71,7 +72,7 @@ StudentSchema.pre('save', async function (next) {
 
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
-  // this.passwordConfirm = undefined;
+  this.passwordConfirm = undefined;
   next();
 });
 
@@ -80,11 +81,6 @@ StudentSchema.methods.passwordsMatch = async function (passwordInput, password) 
 };
 StudentSchema.plugin(uniqueValidator);
 
-//find student by matric Number
-module.exports.getStudentbymatricNumber = function (matricNumber, callback){
-  const query = {matricNumber : matricNumber}
-  Student.findOne(query, callback);
-}
 
 //compare password for login
 module.exports.comparePassword = function(password, hash, callback){
@@ -94,4 +90,4 @@ module.exports.comparePassword = function(password, hash, callback){
   });
 }
 
-module.exports = model('Student', StudentSchema);
+module.exports = model('Students', StudentSchema);
